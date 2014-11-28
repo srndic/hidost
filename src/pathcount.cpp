@@ -1,0 +1,232 @@
+/*
+ * Copyright 2012 Nedim Srndic, University of Tuebingen
+ *
+ * This file is part of Hidost.
+
+ * Hidost is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * Hidost is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with Hidost.  If not, see <http://www.gnu.org/licenses/>.
+ *
+ * pathcount.cpp
+ *  Created on: Dec 05, 2013
+ */
+
+/*
+ * This program counts the number of files a path appears in.
+ */
+
+#include <cstdio> // remove()
+#include <cstdlib>
+#include <fstream>
+#include <iostream>
+#include <list>
+#include <map>
+#include <string>
+
+#include <boost/program_options.hpp>
+#include <boost/thread.hpp>	// boost::mutex
+#include <quickly/DataAction.h>
+#include <quickly/ThreadPool.h>
+#include <unistd.h>
+
+namespace po = boost::program_options;
+
+class DataActionImpl: public quickly::DataActionBase {
+private:
+    explicit DataActionImpl(unsigned int id) :
+            DataActionBase(id) {
+    }
+    // A mutex for thread safety
+    static boost::mutex mutex;
+    // A vector of resulting file names
+    static std::vector<std::string> new_files;
+public:
+    // Dummy constructor
+    DataActionImpl() :
+            DataActionBase(UINT_MAX) {
+    }
+    virtual ~DataActionImpl() {
+    }
+    // Virtual constructor
+    virtual DataActionImpl *create(unsigned int id) {
+        return new DataActionImpl(id);
+    }
+    
+    // Static constructor
+    static void init() {
+    }
+    ;
+    static std::vector<std::string> &getNewFiles() {
+        return new_files;
+    }
+    
+    // Overridden doFull() method
+    virtual void doFull(std::stringstream &databuf);
+};
+
+boost::mutex DataActionImpl::mutex;
+std::vector<std::string> DataActionImpl::new_files;
+
+void DataActionImpl::doFull(std::stringstream &databuf) {
+    std::string newpath;
+    databuf >> newpath;
+    {
+        boost::mutex::scoped_lock lock(mutex);
+        new_files.push_back(newpath);
+    }
+}
+
+po::variables_map parse_arguments(int argc, char *argv[]) {
+    po::options_description desc(
+            "This program counts the number of files a path appears in. Allowed options");
+    desc.add_options()
+            ("help", "produce help message")
+            ("input-file,i",
+                    po::value<std::string>()->required(),
+                    "a list of path files, one per line")
+            ("output-file,o",
+                    po::value<std::string>()->required(),
+                    "a list of paths and their counts, sorted by count, descending")
+            ("vm-limit,m",
+                    po::value<unsigned int>()->default_value(0U),
+                    "limit the virtual memory of child processes in MB (default: no limit)")
+            ("cpu-time,t",
+                    po::value<unsigned int>()->default_value(0U),
+                    "limit the CPU time of child processes in seconds (default: no limit)")
+            ("parallel,N",
+                    po::value<unsigned int>()->default_value(0U),
+                    "number of child processes to run in parallel (default: number of cores minus one)");
+    
+    po::variables_map vm;
+    po::store(po::command_line_parser(argc, argv).options(desc).run(), vm);
+    
+    if (vm.count("help")) {
+        std::cout << desc << std::endl;
+        std::exit(EXIT_SUCCESS);
+    }
+    
+    try {
+        po::notify(vm);
+    } catch (std::exception &e) {
+        std::cerr << e.what() << std::endl << std::endl << desc << std::endl;
+        std::exit(EXIT_FAILURE);
+    }
+    return vm;
+}
+
+/*
+ * Returns the directory containing this executable file.
+ */
+std::string get_exe_dir() {
+    char buf[PATH_MAX];
+    ssize_t buflen = readlink("/proc/self/exe", buf, PATH_MAX);
+    if (buflen == -1 or buflen == PATH_MAX) {
+        return std::string();
+    }
+    std::string dir(buf);
+    return dir.substr(0, dir.find_last_of('/') + 1);
+}
+
+/*
+ * Main program (parent executable).
+ */
+int main(int argc, char *argv[]) {
+    // Parse arguments
+    po::variables_map vm = parse_arguments(argc, argv);
+    const std::string INPUT_FILE = vm["input-file"].as<std::string>();
+    const std::string OUTPUT_FILE = vm["output-file"].as<std::string>();
+    const unsigned int VM_LIMIT = vm["vm-limit"].as<unsigned int>();
+    const unsigned int CPU_LIMIT = vm["cpu-time"].as<unsigned int>();
+    const unsigned int PARALLEL = vm["parallel"].as<unsigned int>();
+    DataActionImpl::init();
+    
+    // Read file list
+    std::vector<std::string> input_files;
+    {
+        std::string line;
+        std::ifstream ifile(INPUT_FILE, std::ios::binary);
+        while (std::getline(ifile, line)) {
+            input_files.push_back(line);
+        }
+        ifile.close();
+    }
+    
+    bool first_run = true;
+    while (input_files.size() > 1) {
+        // Make sure we have an even number of input files
+        if (input_files.size() % 2 == 1) {
+            input_files.push_back("/dev/null");
+        }
+        // Construct a vector of command-line arguments
+        std::vector<const char * const *> argvs;
+        for (unsigned int i = 0; i < input_files.size() / 2; i++) {
+            const char **argv = (const char **) NULL;
+            try {
+                argv = new const char *[5] { "merger",
+                                             input_files[i * 2].c_str(),
+                                             input_files[i * 2 + 1].c_str(),
+                                             first_run ? "1" : "n",
+                                             nullptr };
+            } catch (...) {
+                std::cerr << "Memory allocation failed." << std::endl;
+                std::exit(1);
+            }
+            argvs.push_back(argv);
+        }
+        
+        // Prepare the data action and perform scan
+        DataActionImpl dummy;
+        std::string merger_location(get_exe_dir() + "merger");
+        quickly::ThreadPool pool(merger_location.c_str(), argvs, &dummy,
+                                 PARALLEL);
+        pool.setVerbosity(5U);
+        pool.setVmLimit(VM_LIMIT * 1024U * 1024U);
+        pool.setCpuLimit(CPU_LIMIT);
+        pool.run();
+        
+        // Delete input files, except the original path files
+        if (not first_run) {
+            for (const auto &file : input_files) {
+                remove(file.c_str());
+            }
+        }
+        // Delete the command-line arguments
+        for (unsigned int i = 0; i < argvs.size(); i++) {
+            delete[] argvs[i];
+        }
+        first_run = false;
+        input_files = DataActionImpl::getNewFiles();
+        DataActionImpl::getNewFiles().clear();
+    }
+    
+    if (first_run) {
+        return EXIT_SUCCESS;
+    }
+    // Move the result file from /tmp to its final location
+    if (rename(input_files[0].c_str(), OUTPUT_FILE.c_str())) {
+        try {
+            // Try to copy then delete
+            std::ifstream source(input_files[0], std::ios::binary);
+            std::ofstream dest(OUTPUT_FILE, std::ios::binary);
+            dest << source.rdbuf();
+            source.close();
+            dest.close();
+            if (remove(input_files[0].c_str())) {
+                throw;
+            }
+        } catch (...) {
+            std::cerr << "Could not move file '" << input_files[0] << "' to '"
+                      << OUTPUT_FILE << "'" << std::endl;
+        }
+    }
+    return EXIT_SUCCESS;
+}
