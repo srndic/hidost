@@ -26,7 +26,6 @@ import subprocess
 import sys
 
 import numpy
-from sklearn.feature_extraction.text import HashingVectorizer
 
 def SWFExtractor(swffile):
     '''
@@ -34,7 +33,12 @@ def SWFExtractor(swffile):
     output as a string. If the process doesn't terminate in 11 seconds, it
     gets killed.
     '''
-    extractor = subprocess.Popen(['timeout', '-k 1s', '40s', 'java', '-cp', '/guest/bin/SWFREtools/bin/', 'de.cogsys.SWFExtractor', swffile], stdout=subprocess.PIPE)
+    extractor = subprocess.Popen(['timeout', '-k 1s', '40s',
+                                  'java', '-cp',
+                                  '/guest/bin/SWFREtools/bin/',
+                                  'de.cogsys.SWFExtractor',
+                                  swffile],
+                                  stdout=subprocess.PIPE)
     (stdoutdata, stderrdata) = extractor.communicate()
     if stderrdata is not None and len(stderrdata) > 0:
         sys.stderr.write('Child (SWFExtractor) error: %s\n' % stderrdata)
@@ -160,7 +164,6 @@ def swf2paths(swf_in, verbose=False, do_compact=True):
             if verbose: sys.stderr.write('No match.\n')
             continue
         match = match.groupdict()
-#         if verbose: sys.stderr.write('{}'.format(repr(match)))
         level = len(match['level']) / 2
         path_maker[level] = match['label']
         if match['value'] is None:
@@ -178,12 +181,6 @@ def swf2paths(swf_in, verbose=False, do_compact=True):
 
     return all_paths if all_paths else None
 
-_hv = HashingVectorizer(analyzer='char',
-                       ngram_range=(3,3),
-                       decode_error='replace',
-                       norm='l1',
-                       non_negative=True)
-
 def swfmap2vector_nan(swfmap, all_paths):
     res = float('NaN') * numpy.empty(len(all_paths))
     for i, p in enumerate(all_paths):
@@ -199,18 +196,6 @@ def swfmap2vector(swfmap, all_paths):
         if type(v) != str:
                 res[i] = float(v)
     return res
-
-#def swfmap2vector(swfmap, all_paths):
-#    res = numpy.empty(len(all_paths))
-#    for i, p in enumerate(all_paths):
-#        v = swfmap.get(p)
-#        if v is not None:
-#            if type(v) != str:
-#                res[i] = float(v)
-#            else:
-#                # a hack to calculate the norm of a sparse vector
-#                res[i] = math.sqrt((_hv.fit_transform([v]).data ** 2).sum())
-#    return res
 
 def get_all_paths(swfmaps):
     '''
