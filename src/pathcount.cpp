@@ -1,5 +1,5 @@
 /*
- * Copyright 2012 Nedim Srndic, University of Tuebingen
+ * Copyright 2014 Nedim Srndic, University of Tuebingen
  *
  * This file is part of Hidost.
 
