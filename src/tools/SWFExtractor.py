@@ -1,10 +1,25 @@
-'''
+"""
+Copyright 2014 Nedim Srndic, University of Tuebingen
+This file is part of Hidost.
+
+Hidost is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+Hidost is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with Hidost.  If not, see <http://www.gnu.org/licenses/>.
+
 Created on July 22, 2014.
-'''
+"""
 
 import ast
 import collections
-import math
 import re
 import subprocess
 import sys
@@ -14,8 +29,8 @@ from sklearn.feature_extraction.text import HashingVectorizer
 
 def SWFExtractor(swffile):
     '''
-    Runs a child SWFExtractor process on a given file and returns the standard 
-    output as a string. If the process doesn't terminate in 11 seconds, it 
+    Runs a child SWFExtractor process on a given file and returns the standard
+    output as a string. If the process doesn't terminate in 11 seconds, it
     gets killed.
     '''
     extractor = subprocess.Popen(['timeout', '-k 1s', '40s', 'java', '-cp', '/guest/bin/SWFREtools/bin/', 'de.cogsys.SWFExtractor', swffile], stdout=subprocess.PIPE)
@@ -32,9 +47,9 @@ _compactor2_re = re.compile(r'(Symbol\x00Name\x00){2,}')
 
 def swf2map(swf_in, verbose=False, do_compact=True):
     '''
-    Returns a dictionary containing all structural paths and their values 
-    in the given SWF file. If 'verbose', will write a lot to sys.stderr. 
-    Returns None on failure. 
+    Returns a dictionary containing all structural paths and their values
+    in the given SWF file. If 'verbose', will write a lot to sys.stderr.
+    Returns None on failure.
     '''
     swfout = []
     try:
@@ -42,13 +57,13 @@ def swf2map(swf_in, verbose=False, do_compact=True):
     except:
         if verbose: sys.stderr.write('Child process exited unexpectedly.\n')
         return None
-    
+
     if not swfout or swfout[-1] != 'OKAY - DONE!':
         if verbose: sys.stderr.write('Child process exited unexpectedly.\n')
         if verbose and len(swfout) >= 1: sys.stderr.write(swfout[-1] + '\n')
         if verbose and len(swfout) >= 2: sys.stderr.write(swfout[-2] + '\n')
         return None
-    
+
     swfmap = {}
     path_maker = ['' for _ in range(0, 1000)]
     line_re = re.compile(r'^(?P<level> *)\[.*?\]: (?P<label>\w+)( : (?P<value>\d+|true|false|[-+]?[0-9]*\.?[0-9]+|.*)|.*)?$')
@@ -89,7 +104,7 @@ def swf2map(swf_in, verbose=False, do_compact=True):
                 swfmap[pathstr] = [value]
             if verbose: sys.stderr.write('{}\n'.format(repr((match['value'], value))))
             #if verbose: sys.stderr.write('Path [{}]: {}\n'.format(level, pathstr))
-    
+
     # Convert all values of individual paths to the majority type
     for k in swfmap.iterkeys():
         v = swfmap[k]
@@ -106,14 +121,14 @@ def swf2map(swf_in, verbose=False, do_compact=True):
             except ValueError as e:
                 sys.stderr.write('==> ValueError in swf2map()\n')
                 raise e
-    
+
     return swfmap if swfmap else None
 
 def swf2paths(swf_in, verbose=False, do_compact=True):
     '''
-    Returns a dictionary containing all structural paths and their counts 
-    in the given SWF file. If 'verbose', will write a lot to sys.stderr. 
-    Returns None on failure. 
+    Returns a dictionary containing all structural paths and their counts
+    in the given SWF file. If 'verbose', will write a lot to sys.stderr.
+    Returns None on failure.
     '''
     swfout = []
     try:
@@ -121,13 +136,13 @@ def swf2paths(swf_in, verbose=False, do_compact=True):
     except:
         if verbose: sys.stderr.write('Child process exited unexpectedly.\n')
         return None
-    
+
     if not swfout or swfout[-1] != 'OKAY - DONE!':
         if verbose: sys.stderr.write('Child process exited unexpectedly.\n')
         if verbose: sys.stderr.write(swfout[-1] + '\n')
         if verbose: sys.stderr.write(swfout[-2] + '\n')
         return None
-    
+
     all_paths = {}
     path_maker = ['' for _ in range(0, 1000)]
     line_re = re.compile(r'^(?P<level> *)\[.*?\]: (?P<label>\w+)( : (?P<value>\d+|true|false|[-+]?[0-9]*\.?[0-9]+|.*)|.*)?$')
@@ -159,13 +174,13 @@ def swf2paths(swf_in, verbose=False, do_compact=True):
             else:
                 all_paths[pathstr] = 1
             if verbose: sys.stderr.write('Path [{}]: {}\n'.format(level, pathstr))
-    
+
     return all_paths if all_paths else None
 
-_hv = HashingVectorizer(analyzer='char', 
-                       ngram_range=(3,3), 
-                       decode_error='replace', 
-                       norm='l1', 
+_hv = HashingVectorizer(analyzer='char',
+                       ngram_range=(3,3),
+                       decode_error='replace',
+                       norm='l1',
                        non_negative=True)
 
 def swfmap2vector_nan(swfmap, all_paths):
@@ -198,10 +213,10 @@ def swfmap2vector(swfmap, all_paths):
 
 def get_all_paths(swfmaps):
     '''
-    Returns a sorted list of all paths found in the provided 
-    SWF map iterable. 
+    Returns a sorted list of all paths found in the provided
+    SWF map iterable.
     '''
     res = set()
     for sm in swfmaps:
         res.update(sm.keys())
-    return sorted(list(res.difference(['m', 'f'])))        
+    return sorted(list(res.difference(['m', 'f'])))
