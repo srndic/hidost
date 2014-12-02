@@ -128,3 +128,8 @@ if (PDF2VALS)
 		RUNTIME DESTINATION bin
 		PERMISSIONS OWNER_READ OWNER_EXECUTE GROUP_READ GROUP_EXECUTE WORLD_READ WORLD_EXECUTE)
 endif (PDF2VALS)
+
+configure_file(config.py.in ${CMAKE_CURRENT_SOURCE_DIR}/config.py)
+
+# Also process subdirectories
+add_subdirectory(tools)

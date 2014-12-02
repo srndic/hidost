@@ -27,6 +27,8 @@ import sys
 
 import numpy
 
+from hidost import config
+
 def SWFExtractor(swffile):
     '''
     Runs a child SWFExtractor process on a given file and returns the standard
@@ -35,8 +37,8 @@ def SWFExtractor(swffile):
     '''
     extractor = subprocess.Popen(['timeout', '-k 1s', '40s',
                                   'java', '-cp',
-                                  '/guest/bin/SWFREtools/bin/',
-                                  'de.cogsys.SWFExtractor',
+                                  config.SWFExtractor_classpath,
+                                  'SWFExtractor',
                                   swffile],
                                   stdout=subprocess.PIPE)
     (stdoutdata, stderrdata) = extractor.communicate()
