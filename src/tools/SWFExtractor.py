@@ -21,13 +21,12 @@ Created on July 22, 2014.
 
 import ast
 import collections
+import os
 import re
 import subprocess
 import sys
 
 import numpy
-
-from hidost import config
 
 def SWFExtractor(swffile):
     '''
@@ -35,9 +34,10 @@ def SWFExtractor(swffile):
     output as a string. If the process doesn't terminate in 11 seconds, it
     gets killed.
     '''
+    classpath = '{}:{}'.format(os.path.dirname(__file__),
+                               os.getenv('CLASSPATH', ''))
     extractor = subprocess.Popen(['timeout', '-k 1s', '40s',
-                                  'java', '-cp',
-                                  config.SWFExtractor_classpath,
+                                  'java', '-cp', classpath,
                                   'SWFExtractor',
                                   swffile],
                                   stdout=subprocess.PIPE)

@@ -31,7 +31,6 @@ macro(require_library)
 endmacro(require_library)
 
 # Some source files need configuring
-configure_file(config.py.in ${CMAKE_CURRENT_SOURCE_DIR}/config.py)
 configure_file(feat-extract-vals.cpp.in ${CMAKE_CURRENT_SOURCE_DIR}/feat-extract-vals.cpp)
 configure_file(pathcount.cpp.in ${CMAKE_CURRENT_SOURCE_DIR}/pathcount.cpp)
 
