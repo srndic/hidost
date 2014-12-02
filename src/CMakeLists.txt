@@ -1,17 +1,17 @@
 # Copyright 2014 Nedim Srndic, University of Tuebingen
-# 
+#
 # This file is part of Hidost.
 #
 # Hidost is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 3 of the License, or
 # (at your option) any later version.
-# 
+#
 # Hidost is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
-# 
+#
 # You should have received a copy of the GNU General Public License
 # along with Hidost.  If not, see <http://www.gnu.org/licenses/>.
 
@@ -30,6 +30,11 @@ macro(require_library)
     endforeach()
 endmacro(require_library)
 
+# Some source files need configuring
+configure_file(config.py.in ${CMAKE_CURRENT_SOURCE_DIR}/config.py)
+configure_file(feat-extract-vals.cpp.in ${CMAKE_CURRENT_SOURCE_DIR}/feat-extract-vals.cpp)
+configure_file(pathcount.cpp.in ${CMAKE_CURRENT_SOURCE_DIR}/pathcount.cpp)
+
 if (CACHER)
     require_library(quickly boost_program_options-mt boost_thread-mt boost_filesystem-mt boost_system-mt)
 	set(CACHER_SOURCES cacher.cpp)
@@ -40,17 +45,6 @@ if (CACHER)
 		RUNTIME DESTINATION bin
 		PERMISSIONS OWNER_READ OWNER_EXECUTE GROUP_READ GROUP_EXECUTE WORLD_READ WORLD_EXECUTE)
 endif (CACHER)
-
-if (CUMULATIVE)
-    require_library(quickly boost_program_options-mt boost_thread-mt crypto)
-	set(CUMULATIVE_SOURCES pdfpath.cpp cumulative.cpp)
-	add_executable(${CUMULATIVE_EXECUTABLE_NAME} ${CUMULATIVE_SOURCES})
-	target_link_libraries(${CUMULATIVE_EXECUTABLE_NAME} quickly boost_program_options-mt boost_thread-mt crypto)
-	set_target_properties(${CUMULATIVE_EXECUTABLE_NAME} PROPERTIES VERSION ${HIDOST_VERSION})
-	install(TARGETS ${CUMULATIVE_EXECUTABLE_NAME}
-		RUNTIME DESTINATION bin
-		PERMISSIONS OWNER_READ OWNER_EXECUTE GROUP_READ GROUP_EXECUTE WORLD_READ WORLD_EXECUTE)
-endif (CUMULATIVE)
 
 if (FEATEXTRACT)
     require_library(quickly boost_program_options-mt boost_thread-mt)
@@ -128,8 +122,6 @@ if (PDF2VALS)
 		RUNTIME DESTINATION bin
 		PERMISSIONS OWNER_READ OWNER_EXECUTE GROUP_READ GROUP_EXECUTE WORLD_READ WORLD_EXECUTE)
 endif (PDF2VALS)
-
-configure_file(config.py.in ${CMAKE_CURRENT_SOURCE_DIR}/config.py)
 
 # Also process subdirectories
 add_subdirectory(tools)

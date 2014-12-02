@@ -36,7 +36,6 @@
 #include <boost/thread.hpp>	// boost::mutex
 #include <quickly/DataAction.h>
 #include <quickly/ThreadPool.h>
-#include <unistd.h>
 
 namespace po = boost::program_options;
 
@@ -124,19 +123,6 @@ po::variables_map parse_arguments(int argc, char *argv[]) {
 }
 
 /*
- * Returns the directory containing this executable file.
- */
-std::string get_exe_dir() {
-    char buf[PATH_MAX];
-    ssize_t buflen = readlink("/proc/self/exe", buf, PATH_MAX);
-    if (buflen == -1 or buflen == PATH_MAX) {
-        return std::string();
-    }
-    std::string dir(buf);
-    return dir.substr(0, dir.find_last_of('/') + 1);
-}
-
-/*
  * Main program (parent executable).
  */
 int main(int argc, char *argv[]) {
@@ -171,7 +157,7 @@ int main(int argc, char *argv[]) {
         for (unsigned int i = 0; i < input_files.size() / 2; i++) {
             const char **argv = (const char **) NULL;
             try {
-                argv = new const char *[5] { "merger",
+                argv = new const char *[5] { "${MERGER_EXECUTABLE_NAME}",
                                              input_files[i * 2].c_str(),
                                              input_files[i * 2 + 1].c_str(),
                                              first_run ? "1" : "n",
@@ -185,9 +171,8 @@ int main(int argc, char *argv[]) {
         
         // Prepare the data action and perform scan
         DataActionImpl dummy;
-        std::string merger_location(get_exe_dir() + "merger");
-        quickly::ThreadPool pool(merger_location.c_str(), argvs, &dummy,
-                                 PARALLEL);
+        quickly::ThreadPool pool("${CMAKE_CURRENT_BINARY_DIR}/${MERGER_EXECUTABLE_NAME}", 
+                                 argvs, &dummy, PARALLEL);
         pool.setVerbosity(5U);
         pool.setVmLimit(VM_LIMIT * 1024U * 1024U);
         pool.setCpuLimit(CPU_LIMIT);

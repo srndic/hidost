@@ -16,12 +16,12 @@
  * You should have received a copy of the GNU General Public License
  * along with Hidost.  If not, see <http://www.gnu.org/licenses/>.
  *
- * pdf2paths.cpp
+ * pdf2vals.cpp
  *  Created on: Nov 21, 2013
  */
 
 /*
- * This program extracts and prints structural paths and their 
+ * This program extracts and prints structural paths and their
  * values from PDF files.
  */
 
@@ -133,10 +133,10 @@ void initRegex() {
 
 std::map<std::string, std::vector<double>> pathvals;
 void insertValue(const pdfpath &path, Object &o) {
-    if (not (o.isBool() 
-             or o.isInt() 
-             or o.isNum() 
-             or o.isReal() 
+    if (not (o.isBool()
+             or o.isInt()
+             or o.isNum()
+             or o.isReal()
              or o.isUint())) {
         return;
     }
@@ -152,9 +152,7 @@ void insertValue(const pdfpath &path, Object &o) {
         // Remove empty paths (consisting of 2 null-bytes)
         return;
     }
-    
-    std::cerr << pathstr << std::endl;
-    
+
     // Convert type
     double v = 0.0;
     if (o.isBool()) {
@@ -168,7 +166,7 @@ void insertValue(const pdfpath &path, Object &o) {
     } else if (o.isUint()) {
         v = static_cast<double>(o.getUint());
     }
-    
+
     // Insert into the map
     auto it = pathvals.find(pathstr);
     if (it == pathvals.end()) {
@@ -179,10 +177,12 @@ void insertValue(const pdfpath &path, Object &o) {
 }
 
 void printPaths() {
+    /* Prints paths and their median values.
+     */
     for (auto &p : pathvals) {
         unsigned int median_i = p.second.size() / 2;
-        std::nth_element(std::begin(p.second), 
-                         std::begin(p.second) + median_i, 
+        std::nth_element(std::begin(p.second),
+                         std::begin(p.second) + median_i,
                          std::end(p.second));
         std::cout << p.first << ' ' << p.second[median_i] << std::endl;
     }
@@ -208,12 +208,12 @@ void bfs() {
     }
     std::queue<bfsnode> unvisited;
     unvisited.push(bfsnode(root, pdfpath()));
-    
+
     while (unvisited.size() > 0) {
         bfsnode node = unvisited.front();
         Object *o = node.first;
         pdfpath &path = node.second;
-        
+
         switch (o->getType()) {
         case objArray: {
             Array *a = o->getArray();
@@ -322,24 +322,24 @@ int main(int argc, char *argv[]) {
     } else {
         exit_error("Last argument must be 'y' or 'n'.");
     }
-    
+
     globalParams = new GlobalParams();
     PDFDoc *pdfdoc = new PDFDoc(new GooString(argv[1]));
     if (!pdfdoc->isOk()) {
         exit_error("Error in the PDF document.");
     }
-    
+
     xref = pdfdoc->getXRef();
     if (!xref->isOk()) {
         exit_error("Error getting XRef.");
     }
-    
+
     if (do_compact) {
         initRegex();
     }
-    
+
     bfs();
-    
+
     // Prints all paths sorted
     printPaths();
     return EXIT_SUCCESS;

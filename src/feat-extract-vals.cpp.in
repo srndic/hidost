@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU General Public License
  * along with Hidost.  If not, see <http://www.gnu.org/licenses/>.
  *
- * feat-extract.cpp
+ * feat-extract-vals.cpp
  *  Created on: Dec 10, 2013
  */
 
@@ -57,7 +57,7 @@ private:
     static std::ofstream out_file;
     // Class of input data
     static bool data_class;
-    
+
     bool process(const std::string &line);
 public:
     // Dummy constructor
@@ -70,11 +70,11 @@ public:
     virtual DataActionImpl *create(unsigned int id) {
         return new DataActionImpl(id);
     }
-    
+
     // Static constructor
     static void init(const std::string &nppf_name, const std::string &out_file,
                      filevector all_files);
-    
+
     // Overridden doFull() method
     virtual void doFull(std::stringstream &databuf);
 };
@@ -140,7 +140,7 @@ void DataActionImpl::doFull(std::stringstream &databuf) {
         }
     }
     end_of_features:
-    
+
     // Write file name as comment
     ss << '#' << DataActionImpl::all_files[getId()].first;
     // Do not write empty lines
@@ -175,15 +175,15 @@ po::variables_map parse_arguments(int argc, char *argv[]) {
             ("parallel,N",
                     po::value<unsigned int>()->default_value(0U),
                     "number of child processes to run in parallel (default: number of cores minus one)");
-    
+
     po::variables_map vm;
     po::store(po::command_line_parser(argc, argv).options(desc).run(), vm);
-    
+
     if (vm.count("help")) {
         std::cout << desc << std::endl;
         std::exit(EXIT_SUCCESS);
     }
-    
+
     try {
         po::notify(vm);
     } catch (std::exception &e) {
@@ -213,15 +213,15 @@ int main(int argc, char *argv[]) {
     const unsigned int VM_LIMIT = vm["vm-limit"].as<unsigned int>();
     const unsigned int CPU_LIMIT = vm["cpu-time"].as<unsigned int>();
     const unsigned int PARALLEL = vm["parallel"].as<unsigned int>();
-    
+
     // Read file list
     filevector input_files;
     get_input_files(input_files, INPUT_MAL.c_str(), true);
     get_input_files(input_files, INPUT_BEN.c_str(), false);
     DataActionImpl::init(NPPF_FILE, OUTPUT_FILE, input_files);
-    
+
     std::vector<const char * const *> argvs;
-    const char prog_name[] = "/guest/rarepos/cxx/hidost/build-debug/src/pdf2vals";
+    const char prog_name[] = "${CMAKE_CURRENT_BINARY_DIR}/${PDF2VALS_EXECUTABLE_NAME}";
     const char *pn = prog_name;
     for (const auto &file : input_files) {
         const char **argv = (const char **) NULL;
@@ -232,7 +232,7 @@ int main(int argc, char *argv[]) {
         }
         argvs.push_back(argv);
     }
-    
+
     // Prepare the data action and perform scan
     DataActionImpl dummy;
     quickly::ThreadPool pool(pn, argvs, &dummy, PARALLEL);
@@ -240,11 +240,11 @@ int main(int argc, char *argv[]) {
     pool.setVmLimit(VM_LIMIT * 1024U * 1024U);
     pool.setCpuLimit(CPU_LIMIT);
     pool.run();
-    
+
     // Print results, delete command-line arguments
     for (unsigned int i = 0U; i < argvs.size(); i++) {
         delete[] argvs[i];
     }
-    
+
     return EXIT_SUCCESS;
 }
