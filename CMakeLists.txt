@@ -15,9 +15,9 @@
 # You should have received a copy of the GNU General Public License
 # along with Hidost.  If not, see <http://www.gnu.org/licenses/>.
 
-cmake_minimum_required(VERSION 2.0)
+cmake_minimum_required(VERSION 2.8)
 project(hidost)
-set(HIDOST_VERSION "0.7")
+set(HIDOST_VERSION "1.0")
 
 # A macro to unset names
 macro(unset_full)
