@@ -1,17 +1,17 @@
 # Copyright 2012 Nedim Srndic, University of Tuebingen
-# 
+#
 # This file is part of Hidost.
 #
 # Hidost is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 3 of the License, or
 # (at your option) any later version.
-# 
+#
 # Hidost is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
-# 
+#
 # You should have received a copy of the GNU General Public License
 # along with Hidost.  If not, see <http://www.gnu.org/licenses/>.
 
@@ -28,12 +28,10 @@ macro(unset_full)
 endmacro(unset_full)
 
 # Unset all names
-unset_full(CACHER CUMULATIVE FEAT_EXTRACT FEAT_EXTRACTVALS FEAT_SELECT MERGER PATHCOUNT PDF2PATHS PDF2VALS)
-
+unset_full(CACHER FEAT_EXTRACT FEAT_EXTRACTVALS FEAT_SELECT MERGER PATHCOUNT PDF2PATHS PDF2VALS)
 
 # Set executable names
 set(CACHER_EXECUTABLE_NAME cacher)
-set(CUMULATIVE_EXECUTABLE_NAME cumulative)
 set(FEATEXTRACT_EXECUTABLE_NAME feat-extract)
 set(FEATEXTRACTVALS_EXECUTABLE_NAME feat-extract-vals)
 set(FEATSELECT_EXECUTABLE_NAME feat-select)
@@ -49,8 +47,6 @@ if (TOOLSET)
 	    if (TOOL STREQUAL ${CACHER_EXECUTABLE_NAME})
 	        set(CACHER 1)
 	        set(PDF2PATHS 1) # required for cacher
-	    elseif (TOOL STREQUAL ${CUMULATIVE_EXECUTABLE_NAME})
-	        set(CUMULATIVE 1)
 	    elseif (TOOL STREQUAL ${FEATEXTRACT_EXECUTABLE_NAME})
 	        set(FEATEXTRACT 1)
 	    elseif (TOOL STREQUAL ${FEATEXTRACTVALS_EXECUTABLE_NAME})
@@ -75,7 +71,6 @@ if (TOOLSET)
 else (TOOLSET)
 	message(STATUS "Toolset not defined. Will make all tools.")
 	set(CACHER 1)
-	set(CUMULATIVE 1)
 	set(FEATEXTRACT 1)
 	set(FEATEXTRACTVALS 1)
 	set(FEATSELECT 1)
@@ -91,5 +86,7 @@ if(CMAKE_COMPILER_IS_GNUCXX)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pedantic -Wformat=2 -Wall -Wextra -std=c++0x")
 endif(CMAKE_COMPILER_IS_GNUCXX)
 
-# Source directory
+# C++ source directory
 add_subdirectory(src)
+# Python/Java source directory
+add_subdirectory(hidost)
