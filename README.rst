@@ -5,55 +5,89 @@ HIDOST
 Copyright 2014 Nedim Srndic, University of Tuebingen
 nedim.srndic@uni-tuebingen.de
 
-Source code for the work published in:
-Nedim Srndic, Pavel Laskov. **Detection of Malicious PDF Files Based on
-Hierarchical Document Structure**. In *Proceedings of the 20th Annual
-Network & Distributed System Security Symposium*, 2013.
+Source code for the extraction of features from PDF and SWF files
+as published in [1].
 
+.. [1] Nedim Srndic, Pavel Laskov. **Detection of Malicious PDF Files Based on
+   Hierarchical Document Structure**. In *Proceedings of the 20th Annual
+   Network & Distributed System Security Symposium*, 2013.
 
 
 Installation and Setup
 ===============================
 
-Hidost feature extraction is programmed in C++11, learning and
-classification in Python 2.7. It was developed and tested on
-64-bit Ubuntu 12.04.
-
-Required Dependencies
------------------------
-
-The following C++ libraries are required (default versions
-from Ubuntu 12.04):
-
-- boost_filesystem
-- boost_program_options
-- boost_regex
-- boost_system
-- boost_thread
-- poppler
-- libquickly (part of this distribution; see its
-              README file for more information)
-
-The following Python libraries are required:
-
-- scikit-learn 0.14.1
-
-IMPORTANT: Please build and install libquickly first and then Hidost.
-
-Use the hidost/bashsrc/install.sh script for installation. The script
-code contains usage instructions.
-
+Please consult the ``INSTALL.rst`` file.
 
 Usage
 ===================
 
-Use the hidost/bashsrc/featextract.sh script for feature extraction.
-The script code contains usage instructions.
+Hidost consists of two parts: one for PDF and another one for SWF
+files. These two parts are used to extract features from these two
+different file types and they both provide data files (in
+LibSVM format) as output. However, here we will describe them
+separately as their implementations and ways of use have little
+in common.
 
-Use the hidost/bashsrc/classify.sh script for classification. The
-script code contains usage instructions.
+Extracting Features from PDF files
+-------------------------------------
 
-Use the learned model in hidost/ndss2013-model/model.pickle.
+The PDF part was written in C++11 and consists of a toolchain of
+executables. It requires as input a text file with a list of paths to
+benign PDF files, one per line, and another text file with malicious
+PDF files. We will refer to these files as ``bpdfs.txt`` and
+``mpdfs.txt`` in this description. The output of this toolchain is a
+file (``data.libsvm``) in LibSVM input format that contains the feature
+vectors of both benign and malicious PDF files listed in ``bpdfs.txt``
+and ``mpdfs.txt``.
+
+Follow these steps to obtain the data file:
+
+  1) Prepare the files ``bpdfs.txt`` and ``mpdfs.txt``.
+  2) Position in the directory where Hidost has been built,
+     as detailed in ``INSTALL.rst``::
+
+       cd build/
+
+  3) In order to avoid having to extract tree structures from PDF
+     files multiple times, we will cache the extracted structures
+     in cache directories, for benign and malicious files separately::
+
+       mkdir cache-ben cache-mal
+       ./src/cacher -i bpdfs.txt -e ./src/pdf2paths -c cache-ben/ \
+       -t10 -m256
+       ./src/cacher -i mpdfs.txt -e ./src/pdf2paths -c cache-mal/ \
+       -t10 -m256
+
+     We will need the absolute paths of all non-empty cached PDF
+     structures in the following steps::
+
+       find $PWD/cache-ben -name '*.pdf' -not -empty >cached-bpdfs.txt
+       find $PWD/cache-mal -name '*.pdf' -not -empty >cached-mpdfs.txt
+       cat cached-bpdfs.txt cached-mpdfs.txt >cached-pdfs.txt
+
+  4) Now we will count in how many PDF files each of the PDF
+     structural paths occur::
+
+       ./src/pathcount -i cached-pdfs.txt -o pathcounts.bin
+
+  5) The next step is feature selection. We will only take into account
+     structural paths present in at least 1,000 PDF files in our
+     dataset::
+
+       ./src/feat-select -i pathcounts.bin -o features.nppf -m1000
+
+  6) Finally, we will extract the selected features from all files and
+     store the result in the output file::
+
+       ./src/feat-extract -b cached-bpdfs.txt -m cached-mpdfs.txt \
+       -f features.nppf -o data.libsvm
+
+The output file data.libsvm can now be used for learning and
+classification.
+
+Extracting Features from SWF files
+-------------------------------------
+
 
 
 Licensing
