@@ -133,11 +133,7 @@ void initRegex() {
 
 std::map<std::string, std::vector<double>> pathvals;
 void insertValue(const pdfpath &path, Object &o) {
-    if (not (o.isBool()
-             or o.isInt()
-             or o.isNum()
-             or o.isReal()
-             or o.isUint())) {
+    if (not (o.isBool() or o.isNum())) {
         return;
     }
     // Convert path object to string
@@ -157,14 +153,8 @@ void insertValue(const pdfpath &path, Object &o) {
     double v = 0.0;
     if (o.isBool()) {
         v = o.getBool() ? 1.0 : 0.0;
-    } else if (o.isInt()) {
-        v = static_cast<double>(o.getInt());
     } else if (o.isNum()) {
         v = o.getNum();
-    } else if (o.isReal()) {
-        v = o.getReal();
-    } else if (o.isUint()) {
-        v = static_cast<double>(o.getUint());
     }
 
     // Insert into the map

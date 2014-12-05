@@ -2,9 +2,9 @@
 HIDOST INSTALL
 ================
 
-Hidost was developed on 64-bit Ubuntu 12.04 and tested on
-Ubuntu 14.04. It consists of source files written in C++11,
-Python 2.7 and Java 7 and uses CMake for building.
+Hidost was tested on 64-bit Ubuntu 14.04. It consists of source
+files written in C++11, Python 2.7 and Java 7 and uses CMake for
+building.
 
 Required Dependencies
 =======================
@@ -12,8 +12,8 @@ Required Dependencies
 Hidost requires Python 2.7, Java and C++11. CMake
 version 2.8 or greater is required for building Hidost.
 
-The following C++ libraries are required (default
-versions from Ubuntu 14.04):
+The following C++ libraries are required (default versions from
+Ubuntu 14.04):
 
 - Boost Filesystem
 - Boost Program Options
@@ -24,8 +24,11 @@ versions from Ubuntu 14.04):
 
 Hidost depends on the Java library
 `SWFREtools <https://github.com/sporst/SWFREtools>`_ for SWF reading.
-Please build and install it before building Hidost. Finally, make
-sure its binaries are in the system CLASSPATH.
+Please download it and make sure its ``dissector.jar`` binary is in
+the system CLASSPATH, e.g., by putting the following line into your
+``~/.bashrc`` file::
+
+  export CLASSPATH=$CLASSPATH:/path/to/swfretools/dissector.jar
 
 Please make sure the Java compiler ``javac`` is installed as it is
 required for building the Java part of Hidost.
