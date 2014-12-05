@@ -35,10 +35,10 @@ configure_file(feat-extract-vals.cpp.in ${CMAKE_CURRENT_SOURCE_DIR}/feat-extract
 configure_file(pathcount.cpp.in ${CMAKE_CURRENT_SOURCE_DIR}/pathcount.cpp)
 
 if (CACHER)
-    require_library(quickly boost_program_options-mt boost_thread-mt boost_filesystem-mt boost_system-mt)
+    require_library(quickly boost_program_options boost_thread boost_filesystem boost_system)
 	set(CACHER_SOURCES cacher.cpp)
 	add_executable(${CACHER_EXECUTABLE_NAME} ${CACHER_SOURCES})
-	target_link_libraries(${CACHER_EXECUTABLE_NAME} quickly boost_program_options-mt boost_thread-mt boost_filesystem-mt boost_system-mt)
+	target_link_libraries(${CACHER_EXECUTABLE_NAME} quickly boost_program_options boost_thread boost_filesystem boost_system)
 	set_target_properties(${CACHER_EXECUTABLE_NAME} PROPERTIES VERSION ${HIDOST_VERSION})
 	install(TARGETS ${CACHER_EXECUTABLE_NAME}
 		RUNTIME DESTINATION bin
@@ -46,10 +46,10 @@ if (CACHER)
 endif (CACHER)
 
 if (FEATEXTRACT)
-    require_library(quickly boost_program_options-mt boost_thread-mt)
+    require_library(quickly boost_program_options boost_thread)
 	set(FEATEXTRACT_SOURCES NPPFFile.cpp pdfpath.cpp feat-extract.cpp)
 	add_executable(${FEATEXTRACT_EXECUTABLE_NAME} ${FEATEXTRACT_SOURCES})
-	target_link_libraries(${FEATEXTRACT_EXECUTABLE_NAME} quickly boost_program_options-mt boost_thread-mt)
+	target_link_libraries(${FEATEXTRACT_EXECUTABLE_NAME} quickly boost_program_options boost_thread)
 	set_target_properties(${FEATEXTRACT_EXECUTABLE_NAME} PROPERTIES VERSION ${HIDOST_VERSION})
 	install(TARGETS ${FEATEXTRACT_EXECUTABLE_NAME}
 		RUNTIME DESTINATION bin
@@ -57,10 +57,10 @@ if (FEATEXTRACT)
 endif (FEATEXTRACT)
 
 if (FEATEXTRACTVALS)
-    require_library(quickly boost_program_options-mt boost_thread-mt)
+    require_library(quickly boost_program_options boost_thread)
 	set(FEATEXTRACTVALS_SOURCES NPPFFile.cpp pdfpath.cpp feat-extract-vals.cpp)
 	add_executable(${FEATEXTRACTVALS_EXECUTABLE_NAME} ${FEATEXTRACTVALS_SOURCES})
-	target_link_libraries(${FEATEXTRACTVALS_EXECUTABLE_NAME} quickly boost_program_options-mt boost_thread-mt)
+	target_link_libraries(${FEATEXTRACTVALS_EXECUTABLE_NAME} quickly boost_program_options boost_thread)
 	set_target_properties(${FEATEXTRACTVALS_EXECUTABLE_NAME} PROPERTIES VERSION ${HIDOST_VERSION})
 	install(TARGETS ${FEATEXTRACTVALS_EXECUTABLE_NAME}
 		RUNTIME DESTINATION bin
@@ -68,10 +68,10 @@ if (FEATEXTRACTVALS)
 endif (FEATEXTRACTVALS)
 
 if (FEATSELECT)
-    require_library(boost_program_options-mt)
+    require_library(boost_program_options)
 	set(FEATSELECT_SOURCES pdfpath.cpp feat-select.cpp)
 	add_executable(${FEATSELECT_EXECUTABLE_NAME} ${FEATSELECT_SOURCES})
-	target_link_libraries(${FEATSELECT_EXECUTABLE_NAME} boost_program_options-mt)
+	target_link_libraries(${FEATSELECT_EXECUTABLE_NAME} boost_program_options)
 	set_target_properties(${FEATSELECT_EXECUTABLE_NAME} PROPERTIES VERSION ${HIDOST_VERSION})
 	install(TARGETS ${FEATSELECT_EXECUTABLE_NAME}
 		RUNTIME DESTINATION bin
@@ -88,10 +88,10 @@ if (MERGER)
 endif (MERGER)
 
 if (PATHCOUNT)
-    require_library(quickly boost_program_options-mt boost_thread-mt)
+    require_library(quickly boost_program_options boost_thread)
 	set(PATHCOUNT_SOURCES pathcount.cpp)
 	add_executable(${PATHCOUNT_EXECUTABLE_NAME} ${PATHCOUNT_SOURCES})
-	target_link_libraries(${PATHCOUNT_EXECUTABLE_NAME} quickly boost_program_options-mt boost_thread-mt)
+	target_link_libraries(${PATHCOUNT_EXECUTABLE_NAME} quickly boost_program_options boost_thread)
 	set_target_properties(${PATHCOUNT_EXECUTABLE_NAME} PROPERTIES VERSION ${HIDOST_VERSION})
 	install(TARGETS ${PATHCOUNT_EXECUTABLE_NAME}
 		RUNTIME DESTINATION bin
@@ -99,11 +99,11 @@ if (PATHCOUNT)
 endif (PATHCOUNT)
 
 if (PDF2PATHS)
-    require_library(poppler boost_regex-mt)
+    require_library(poppler boost_regex)
 	set(PDF2PATHS_SOURCES pdfpath.cpp pdf2paths.cpp)
 	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -I/usr/include/poppler")
 	add_executable(${PDF2PATHS_EXECUTABLE_NAME} ${PDF2PATHS_SOURCES})
-	target_link_libraries(${PDF2PATHS_EXECUTABLE_NAME} poppler boost_regex-mt)
+	target_link_libraries(${PDF2PATHS_EXECUTABLE_NAME} poppler boost_regex)
 	set_target_properties(${PDF2PATHS_EXECUTABLE_NAME} PROPERTIES VERSION ${HIDOST_VERSION})
 	install(TARGETS ${PDF2PATHS_EXECUTABLE_NAME}
 		RUNTIME DESTINATION bin
@@ -111,11 +111,11 @@ if (PDF2PATHS)
 endif (PDF2PATHS)
 
 if (PDF2VALS)
-    require_library(poppler boost_regex-mt)
+    require_library(poppler boost_regex)
 	set(PDF2VALS_SOURCES pdfpath.cpp pdf2vals.cpp)
 	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -I/usr/include/poppler")
 	add_executable(${PDF2VALS_EXECUTABLE_NAME} ${PDF2VALS_SOURCES})
-	target_link_libraries(${PDF2VALS_EXECUTABLE_NAME} poppler boost_regex-mt)
+	target_link_libraries(${PDF2VALS_EXECUTABLE_NAME} poppler boost_regex)
 	set_target_properties(${PDF2VALS_EXECUTABLE_NAME} PROPERTIES VERSION ${HIDOST_VERSION})
 	install(TARGETS ${PDF2VALS_EXECUTABLE_NAME}
 		RUNTIME DESTINATION bin
