@@ -2,15 +2,20 @@
 HIDOST
 ================
 
+------------------------------------------------------------------
+Toolset for extracting document structures from PDF and SWF files
+------------------------------------------------------------------
+
 Copyright 2014 Nedim Srndic, University of Tuebingen
 nedim.srndic@uni-tuebingen.de
 
 Source code for the extraction of features from PDF and SWF files
 as published in [1].
 
-.. [1] Nedim Srndic, Pavel Laskov. **Detection of Malicious PDF Files Based on
-   Hierarchical Document Structure**. In *Proceedings of the 20th Annual
-   Network & Distributed System Security Symposium*, 2013.
+.. [1] Nedim Srndic, Pavel Laskov. **Detection of Malicious PDF
+   Files Based on Hierarchical Document Structure**. In *Proceedings
+   of the 20th Annual Network & Distributed System Security Symposium*,
+   2013.
 
 
 Installation and Setup
@@ -28,7 +33,7 @@ LibSVM format) as output. However, here we will describe them
 separately as their implementations and ways of use have little
 in common.
 
-Extracting Features from PDF files
+Extracting Features from PDF Files
 -------------------------------------
 
 The PDF part was written in C++11 and consists of a toolchain of
@@ -77,18 +82,43 @@ Follow these steps to obtain the data file:
        ./src/feat-select -i pathcounts.bin -o features.nppf -m1000
 
   6) Finally, we will extract the selected features from all files and
-     store the result in the output file::
+     store the result in the output file ``data.libsvm``::
 
        ./src/feat-extract -b cached-bpdfs.txt -m cached-mpdfs.txt \
        -f features.nppf -o data.libsvm
 
-The output file data.libsvm can now be used for learning and
+The output file ``data.libsvm`` can now be used for learning and
 classification.
 
-Extracting Features from SWF files
+Extracting Features from SWF Files
 -------------------------------------
 
+The SWF part was written in Python 2.7 and Java. It requires as input
+a text file with a list of paths to benign PDF files, one per line,
+and another text file with malicious PDF files. We will refer to these
+files as ``bpdfs.txt`` and ``mpdfs.txt`` in this description. The output
+of this toolchain is a file (``data.libsvm``) in LibSVM input format
+that contains the feature vectors of both benign and malicious PDF files
+listed in ``bpdfs.txt`` and ``mpdfs.txt``.
 
+Follow these steps to obtain the data file:
+
+  1) Prepare the files ``bpdfs.txt`` and ``mpdfs.txt``.
+  2) Position in the directory with Hidost Python source code,
+     ``hidost/hidost/``::
+
+       cd hidost/
+
+  3) Use the Python script ``feat_extract.py`` to extract all
+     features from all SWF files. The features will be pickled to
+     a file called ``features.pickle`` and the feature vectors will be
+     saved in the output file ``data.libsvm``::
+
+       python feat_extract.py -b bswfs.txt -m mswfs.txt \
+       -s features.pickle -o data.libsvm
+
+The output file ``data.libsvm`` can now be used for learning and
+classification.
 
 Licensing
 =================

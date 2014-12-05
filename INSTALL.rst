@@ -9,7 +9,7 @@ Python 2.7 and Java 7 and uses CMake for building.
 Required Dependencies
 =======================
 
-Hidost requires Python 2.7, Java 6 or greater and C++11. CMake
+Hidost requires Python 2.7, Java and C++11. CMake
 version 2.8 or greater is required for building Hidost.
 
 The following C++ libraries are required (default
@@ -26,6 +26,9 @@ Hidost depends on the Java library
 `SWFREtools <https://github.com/sporst/SWFREtools>`_ for SWF reading.
 Please build and install it before building Hidost. Finally, make
 sure its binaries are in the system CLASSPATH.
+
+Please make sure the Java compiler ``javac`` is installed as it is
+required for building the Java part of Hidost.
 
 Hidost also depends on libquickly, a C++ library for multiprocessing.
 You can get its source separately.
@@ -44,7 +47,7 @@ where the ``README.rst`` file is)::
 
 After these steps have been run successfully, both the PDF part
 (consisting of C++ executables) and the SWF part (consisting of
-a Python library and a Java class file) should be built.
+a Python script and a Java class file) should be built.
 
 Installation
 ===================
