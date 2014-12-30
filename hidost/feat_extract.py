@@ -34,6 +34,7 @@ import re
 import shelve
 import subprocess
 import sys
+import types
 
 
 def append_libsvm(X, y, fd, comment=[]):
@@ -138,9 +139,14 @@ def get_swf_structure(f, verbose=False, do_compact=True):
                 elif value == 'false':
                     value = False
 
-            if type(value) == str:
-                continue  # discard strings
+            # Discard strings, Nones, tuples and longs
+            if (isinstance(value, str) or
+                    isinstance(value, types.NoneType) or
+                    isinstance(value, tuple) or
+                    isinstance(value, long)):
+                continue
 
+            # Save value
             if pathstr in s:
                 s[pathstr].append(value)
             else:
@@ -180,24 +186,24 @@ def reduce_structure(f, label, verbose=False):
     except:
         return None, label
     if s is None:
-        # probably an error occured in Java code
+        # Probably an error occured in Java code
         return None, label
     for k in s.keys():
         vals = s[k]
         if verbose:
             sys.stderr.write('[{}]: {} '.format(k, repr(vals)))
-        t = type(vals[0])
-        if t in [int, float]:
-            # discard all but median
+        if isinstance(vals[0], bool):
+            # For booleans, only keep mean
+            s[k] = float(sum(vals)) / len(vals)
+        elif isinstance(vals[0], int) or isinstance(vals[0], float):
+            # For integers and floats, only keep median
             vl = len(vals)
             if vl % 2 == 0:
-                s[k] = sum(sorted(vals)[vl / 2 - 1: vl / 2]) / 2.0
+                s[k] = sum(sorted(vals)[vl / 2 - 1: vl / 2 + 1]) / 2.0
             else:
                 s[k] = float(sorted(vals)[vl / 2])
-        elif t == bool:
-            s[k] = float(sum(vals)) / len(vals)
-        # else:
-            # raise TypeError('Unexpected value type: {}'.format(t))
+        else:
+            raise TypeError('Unexpected value type: {}'.format(type(vals[0])))
         if verbose:
             sys.stderr.write('{}\n'.format(s[k]))
     return s, label
@@ -304,7 +310,7 @@ def main():
                                                            len(mfs)))
     feats = 0
     if args.features:
-        feats = pickle.load(args.features)
+        feats = pickle.load(open(args.features, 'rb'))
     else:
         print('Enumerating all features in the dataset')
         feats = set()
