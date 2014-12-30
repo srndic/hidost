@@ -37,11 +37,10 @@ void parse_pdfpath(std::istream &in, pdfpath &path) {
         }
         // We have a name
         path.push_back(buffer);
-        
+
         // Check for errors in the stream
         if (not (in.get() == '\0' and in.good())) {
             throw "pdfpath: Error parsing name.";
-            return;
         }
     }
     throw "pdfpath: Empty input.";

@@ -222,9 +222,9 @@ int main(int argc, char *argv[]) {
     }
     for (const auto &fname : DataActionImpl::getFiles()) {
         const char **child_argv = nullptr;
-        child_argv = new const char *[4] {prog_name, 
-                                          fname.c_str(), 
-                                          (DO_COMPACT ? "y" : "n"), 
+        child_argv = new const char *[4] {prog_name,
+                                          fname.c_str(),
+                                          (DO_COMPACT ? "y" : "n"),
                                           nullptr};
         argvs.push_back(child_argv);
     }

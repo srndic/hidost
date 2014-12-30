@@ -308,6 +308,7 @@ def main():
     print('Successfully extracted {}/{} structures'.format(len(structs),
                                                            len(bfs) +
                                                            len(mfs)))
+    cache.close()
     feats = 0
     if args.features:
         feats = pickle.load(open(args.features, 'rb'))
