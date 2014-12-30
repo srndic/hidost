@@ -51,13 +51,11 @@ private:
     static filevector all_files;
     // A set of all paths
     static std::set<std::string> features;
-    // Index of the next file to process
-    static unsigned int to_process;
     // The output file
     static std::ofstream out_file;
-    // Class of input data
-    static bool data_class;
-    
+    // Use values as features
+    static bool use_values;
+
     bool process(const std::string &line);
 public:
     // Dummy constructor
@@ -70,11 +68,13 @@ public:
     virtual DataActionImpl *create(unsigned int id) {
         return new DataActionImpl(id);
     }
-    
+
     // Static constructor
-    static void init(const std::string &nppf_name, const std::string &out_file,
-                     filevector all_files);
-    
+    static void init(const std::string &nppf_name,
+                     const std::string &out_file,
+                     filevector all_files,
+                     bool use_values);
+
     // Overridden doFull() method
     virtual void doFull(std::stringstream &databuf);
 };
@@ -82,29 +82,24 @@ public:
 boost::mutex DataActionImpl::mutex;
 filevector DataActionImpl::all_files;
 std::set<std::string> DataActionImpl::features;
-unsigned int DataActionImpl::to_process = 0U;
 std::ofstream DataActionImpl::out_file;
 
 void DataActionImpl::init(const std::string &nppf_name,
-                          const std::string &out_file, filevector all_files) {
+                          const std::string &out_file,
+                          filevector all_files,
+                          bool use_values) {
     for (const auto &feat : InNPPFFile(nppf_name.c_str())) {
         DataActionImpl::features.insert(feat);
     }
     DataActionImpl::out_file.open(out_file, std::ios::binary | std::ios::trunc);
     DataActionImpl::all_files = all_files;
+    DataActionImpl::use_values = use_values;
 }
 
 bool DataActionImpl::process(const std::string &line) {
-    boost::mutex::scoped_lock lock(DataActionImpl::mutex);
-    if (DataActionImpl::to_process != this->getId()) {
-        return false;
-    }
     if (line.size() > 0) {
+    boost::mutex::scoped_lock lock(DataActionImpl::mutex);
         DataActionImpl::out_file << line << std::endl;
-    }
-    DataActionImpl::to_process++;
-    if (DataActionImpl::to_process > DataActionImpl::all_files.size()) {
-        DataActionImpl::out_file.close();
     }
     return true;
 }
@@ -121,12 +116,9 @@ void DataActionImpl::doFull(std::stringstream &databuf) {
         path = get_pdfpath_string(databuf);
         // Remove the space delimiter
         databuf.get();
-        // Get the path count
-        unsigned long pcount = 0U;
-        while (databuf.peek() != '\n') {
-            pcount *= 10;
-            pcount += databuf.get() - '0';
-        }
+        // Get the path value
+        double val;
+        databuf >> val;
         // Remove the trailing space
         databuf.get();
         if (path < *fi) {
@@ -140,9 +132,13 @@ void DataActionImpl::doFull(std::stringstream &databuf) {
             } while (path > *fi);
         }
         if (path == *fi) {
-            // Write sparse positive feature
-            ss << std::distance(DataActionImpl::features.begin(), fi) + 1U
-               << ':' << (pcount ? '1' : '0') << ' ';
+            // Write feature
+            ss << (std::distance(features.begin(), fi) + 1U) << ':';
+            if (use_values) {
+                ss << val << ' ';
+            } else {
+                ss << "1 ";
+            }
             no_features = false;
             fi++;
             if (fi == features.end()) {
@@ -151,7 +147,7 @@ void DataActionImpl::doFull(std::stringstream &databuf) {
         }
     }
     end_of_features:
-    
+
     // Write file name as comment
     ss << '#' << DataActionImpl::all_files[getId()].first;
     // Do not write empty lines
@@ -162,7 +158,10 @@ void DataActionImpl::doFull(std::stringstream &databuf) {
 
 po::variables_map parse_arguments(int argc, char *argv[]) {
     po::options_description desc(
-            "This program extracts boolean (path presence) features from files specified in the input file according to the feature (NPPF) file and stores them in libsvm format in the output file. Allowed options");
+            "This program extracts PDF structural features from cached "
+            "files specified in the input file according to the feature "
+            "(NPPF) file and stores them in libsvm format in the output "
+            "file. Allowed options");
     desc.add_options()
             ("help", "produce help message")
             ("input-mal,m",
@@ -174,21 +173,31 @@ po::variables_map parse_arguments(int argc, char *argv[]) {
             ("features,f",
                     po::value<std::string>()->required(),
                     "an NPPF file containing the list of features to extract")
+            ("values", "use values instead of presence as features")
+            ("vm-limit,M",
+                    po::value<unsigned int>()->default_value(0U),
+                    "limit the virtual memory of child processes in MB "
+                    "(default: no limit)")
+            ("cpu-time,t",
+                    po::value<unsigned int>()->default_value(0U),
+                    "limit the CPU time of child processes in seconds "
+                    "(default: no limit)")
             ("output-file,o",
                     po::value<std::string>()->required(),
                     "the feature file to be created")
             ("parallel,N",
                     po::value<unsigned int>()->default_value(0U),
-                    "number of child processes to run in parallel (default: number of cores minus one)");
-    
+                    "number of child processes to run in parallel "
+                    "(default: number of cores minus one)");
+
     po::variables_map vm;
     po::store(po::command_line_parser(argc, argv).options(desc).run(), vm);
-    
+
     if (vm.count("help")) {
         std::cout << desc << std::endl;
         std::exit(EXIT_SUCCESS);
     }
-    
+
     try {
         po::notify(vm);
     } catch (std::exception &e) {
@@ -214,15 +223,18 @@ int main(int argc, char *argv[]) {
     const std::string INPUT_MAL = vm["input-mal"].as<std::string>();
     const std::string INPUT_BEN = vm["input-ben"].as<std::string>();
     const std::string NPPF_FILE = vm["features"].as<std::string>();
+    const bool USE_VALUES = vm.count("values") > 0;
     const std::string OUTPUT_FILE = vm["output-file"].as<std::string>();
+    const unsigned int VM_LIMIT = vm["vm-limit"].as<unsigned int>();
+    const unsigned int CPU_LIMIT = vm["cpu-time"].as<unsigned int>();
     const unsigned int PARALLEL = vm["parallel"].as<unsigned int>();
-    
+
     // Read file list
     filevector input_files;
     get_input_files(input_files, INPUT_MAL.c_str(), true);
     get_input_files(input_files, INPUT_BEN.c_str(), false);
-    DataActionImpl::init(NPPF_FILE, OUTPUT_FILE, input_files);
-    
+    DataActionImpl::init(NPPF_FILE, OUTPUT_FILE, input_files, USE_VALUES);
+
     // Construct a vector of command-line arguments
     std::vector<const char * const *> argvs;
     const char prog_name[] = "/bin/cat";
@@ -236,17 +248,19 @@ int main(int argc, char *argv[]) {
         }
         argvs.push_back(argv);
     }
-    
+
     // Prepare the data action and perform scan
     DataActionImpl dummy;
     quickly::ThreadPool pool(pn, argvs, &dummy, PARALLEL);
     pool.setVerbosity(5U);
+    pool.setVmLimit(VM_LIMIT * 1024U * 1024U);
+    pool.setCpuLimit(CPU_LIMIT);
     pool.run();
-    
+
     // Print results, delete command-line arguments
     for (unsigned int i = 0U; i < argvs.size(); i++) {
         delete[] argvs[i];
     }
-    
+
     return EXIT_SUCCESS;
 }
