@@ -171,6 +171,7 @@ XRef *xref;
 void bfs() {
     typedef std::map<std::string, int> keymap;
     typedef std::pair<Object *, pdfpath> bfsnode;
+    static const std::string noname("<nn>");
     Object *root = new Object();
     xref->getCatalog(root);
     if (root->isNull()) {
@@ -178,12 +179,12 @@ void bfs() {
     }
     std::queue<bfsnode> unvisited;
     unvisited.push(bfsnode(root, pdfpath()));
-    
+
     while (unvisited.size() > 0) {
         bfsnode node = unvisited.front();
         Object *o = node.first;
         pdfpath &path = node.second;
-        
+
         switch (o->getType()) {
         case objArray: {
             Array *a = o->getArray();
@@ -223,7 +224,7 @@ void bfs() {
                 keys.insert({d->getKey(i), i});
             }
             for (const auto &key : keys) {
-                path.push_back(key.first);
+                path.push_back(key.first.size() ? key.first : noname);
                 Object *op = new Object();
                 d->getValNF(key.second, op);
                 unvisited.push(bfsnode(op, path));
@@ -243,7 +244,7 @@ void bfs() {
                 keys.insert({d->getKey(i), i});
             }
             for (const auto &key : keys) {
-                path.push_back(key.first);
+                path.push_back(key.first.size() ? key.first : noname);
                 Object *op = new Object();
                 d->getValNF(key.second, op);
                 unvisited.push(bfsnode(op, path));
@@ -301,24 +302,24 @@ int main(int argc, char *argv[]) {
     } else {
         exit_error("Last argument must be 'y' or 'n'.");
     }
-    
+
     globalParams = new GlobalParams();
     PDFDoc *pdfdoc = new PDFDoc(new GooString(argv[1]));
     if (!pdfdoc->isOk()) {
         exit_error("Error in the PDF document.");
     }
-    
+
     xref = pdfdoc->getXRef();
     if (!xref->isOk()) {
         exit_error("Error getting XRef.");
     }
-    
+
     if (do_compact) {
         initRegex();
     }
-    
+
     bfs();
-    
+
     // Prints all paths sorted
     printPath(pdfpath(), true);
     return EXIT_SUCCESS;
