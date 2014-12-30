@@ -31,7 +31,7 @@ macro(require_library)
 endmacro(require_library)
 
 # Some source files need configuring
-configure_file(feat-extract-vals.cpp.in ${CMAKE_CURRENT_SOURCE_DIR}/feat-extract-vals.cpp)
+configure_file(cacher.cpp.in ${CMAKE_CURRENT_SOURCE_DIR}/cacher.cpp)
 configure_file(pathcount.cpp.in ${CMAKE_CURRENT_SOURCE_DIR}/pathcount.cpp)
 
 if (CACHER)
@@ -57,18 +57,6 @@ if (FEATEXTRACT)
 		RUNTIME DESTINATION bin
 		PERMISSIONS OWNER_READ OWNER_EXECUTE GROUP_READ GROUP_EXECUTE WORLD_READ WORLD_EXECUTE)
 endif (FEATEXTRACT)
-
-if (FEATEXTRACTVALS)
-    set(REQUIRED_LIBS quickly boost_program_options boost_thread boost_system)
-    require_library(${REQUIRED_LIBS})
-	set(FEATEXTRACTVALS_SOURCES NPPFFile.cpp pdfpath.cpp feat-extract-vals.cpp)
-	add_executable(${FEATEXTRACTVALS_EXECUTABLE_NAME} ${FEATEXTRACTVALS_SOURCES})
-	target_link_libraries(${FEATEXTRACTVALS_EXECUTABLE_NAME} ${REQUIRED_LIBS})
-	set_target_properties(${FEATEXTRACTVALS_EXECUTABLE_NAME} PROPERTIES VERSION ${HIDOST_VERSION})
-	install(TARGETS ${FEATEXTRACTVALS_EXECUTABLE_NAME}
-		RUNTIME DESTINATION bin
-		PERMISSIONS OWNER_READ OWNER_EXECUTE GROUP_READ GROUP_EXECUTE WORLD_READ WORLD_EXECUTE)
-endif (FEATEXTRACTVALS)
 
 if (FEATSELECT)
     set(REQUIRED_LIBS boost_program_options)

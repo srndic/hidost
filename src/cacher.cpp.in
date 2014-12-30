@@ -68,7 +68,7 @@ public:
     virtual DataActionImpl *create(unsigned int id) {
         return new DataActionImpl(id);
     }
-    
+
     // Static constructor
     static void init(const std::string &cache_dir);
     static void addFile(const std::string &newfile) {
@@ -77,7 +77,7 @@ public:
     static const std::vector<std::string> &getFiles() {
         return files;
     }
-    
+
     // Overridden doFull() method
     virtual void doFull(std::stringstream &databuf);
 };
@@ -89,7 +89,7 @@ fs::path DataActionImpl::cache_dir;
 void DataActionImpl::doFull(std::stringstream &databuf) {
     fs::path of_path(DataActionImpl::cache_dir);
     of_path /= files[getId()];
-    
+
     // Open the cache file
     std::ofstream of(of_path.c_str(), std::ios::binary | std::ios::trunc);
     if (!of) {
@@ -149,30 +149,32 @@ po::variables_map parse_arguments(int argc, char *argv[]) {
             ("input-file,i",
                     po::value<std::string>()->required(),
                     "a list of input files, one per line")
-            ("exe,e",
-                    po::value<std::string>()->required(),
-                    "executable to run")
+            ("compact", "perform feature compaction")
+            ("values", "use values instead of presence as features")
             ("cache,c",
                     po::value<std::string>()->required(),
                     "where to cache")
             ("vm-limit,m",
                     po::value<unsigned int>()->default_value(0U),
-                    "limit the virtual memory of child processes in MB (default: no limit)")
+                    "limit the virtual memory of child processes in "
+                    "MB (default: no limit)")
             ("cpu-time,t",
                     po::value<unsigned int>()->default_value(0U),
-                    "limit the CPU time of child processes in seconds (default: no limit)")
+                    "limit the CPU time of child processes in seconds "
+                    "(default: no limit)")
             ("parallel,N",
                     po::value<unsigned int>()->default_value(0U),
-                    "number of child processes to run in parallel (default: number of cores minus one)");
-    
+                    "number of child processes to run in parallel "
+                    "(default: number of cores minus one)");
+
     po::variables_map vm;
     po::store(po::command_line_parser(argc, argv).options(desc).run(), vm);
-    
+
     if (vm.count("help")) {
         std::cout << desc << std::endl;
         std::exit(EXIT_SUCCESS);
     }
-    
+
     try {
         po::notify(vm);
     } catch (std::exception &e) {
@@ -189,14 +191,14 @@ int main(int argc, char *argv[]) {
     // Parse arguments
     po::variables_map vm = parse_arguments(argc, argv);
     const std::string INPUT_FILE = vm["input-file"].as<std::string>();
+    const bool DO_COMPACT = vm.count("compact") > 0;
+    const bool USE_VALUES = vm.count("values") > 0;
     const std::string CACHE_DIR = vm["cache"].as<std::string>();
-    std::vector<std::string> CHILD_PARAMS(
-            split(vm["exe"].as<std::string>(), '\n'));
     const unsigned int VM_LIMIT = vm["vm-limit"].as<unsigned int>();
     const unsigned int CPU_LIMIT = vm["cpu-time"].as<unsigned int>();
     const unsigned int PARALLEL = vm["parallel"].as<unsigned int>();
     DataActionImpl::init(CACHE_DIR);
-    
+
     // Read file list
     {
         std::string line;
@@ -211,25 +213,22 @@ int main(int argc, char *argv[]) {
         }
         ifile.close();
     }
-    
+
     // Construct a vector of command-line arguments
     std::vector<const char * const *> argvs;
-    const char *prog_name = CHILD_PARAMS[0].c_str();
+    const char *prog_name = "${CMAKE_CURRENT_BINARY_DIR}/${PDF2PATHS_EXECUTABLE_NAME}";
+    if (USE_VALUES) {
+        prog_name = "${CMAKE_CURRENT_BINARY_DIR}/${PDF2VALS_EXECUTABLE_NAME}";
+    }
     for (const auto &fname : DataActionImpl::getFiles()) {
-        const char **child_argv = (const char **) NULL;
-        unsigned int child_argc = 3 + CHILD_PARAMS.size();
-        child_argv = new const char *[child_argc];
-        
-        child_argv[0] = prog_name;
-        for (unsigned int p = 1U; p < CHILD_PARAMS.size(); p++) {
-            child_argv[p] = CHILD_PARAMS[p].c_str();
-        }
-        child_argv[child_argc - 3] = fname.c_str();
-        child_argv[child_argc - 2] = "y";
-        child_argv[child_argc - 1] = (const char *) NULL;
+        const char **child_argv = nullptr;
+        child_argv = new const char *[4] {prog_name, 
+                                          fname.c_str(), 
+                                          (DO_COMPACT ? "y" : "n"), 
+                                          nullptr};
         argvs.push_back(child_argv);
     }
-    
+
     // Prepare the data action and perform scan
     DataActionImpl dummy;
     quickly::ThreadPool pool(prog_name, argvs, &dummy, PARALLEL);
