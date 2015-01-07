@@ -83,6 +83,7 @@ boost::mutex DataActionImpl::mutex;
 filevector DataActionImpl::all_files;
 std::set<std::string> DataActionImpl::features;
 std::ofstream DataActionImpl::out_file;
+bool DataActionImpl::use_values;
 
 void DataActionImpl::init(const std::string &nppf_name,
                           const std::string &out_file,

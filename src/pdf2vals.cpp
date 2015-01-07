@@ -191,6 +191,7 @@ XRef *xref;
 void bfs() {
     typedef std::map<std::string, int> keymap;
     typedef std::pair<Object *, pdfpath> bfsnode;
+    static const std::string noname("<nn>");
     Object *root = new Object();
     xref->getCatalog(root);
     if (root->isNull()) {
@@ -240,7 +241,7 @@ void bfs() {
                 keys.insert({d->getKey(i), i});
             }
             for (const auto &key : keys) {
-                path.push_back(key.first);
+                path.push_back(key.first.size() ? key.first : noname);
                 Object *op = new Object();
                 d->getValNF(key.second, op);
                 unvisited.push(bfsnode(op, path));
@@ -257,7 +258,7 @@ void bfs() {
                 keys.insert({d->getKey(i), i});
             }
             for (const auto &key : keys) {
-                path.push_back(key.first);
+                path.push_back(key.first.size() ? key.first : noname);
                 Object *op = new Object();
                 d->getValNF(key.second, op);
                 unvisited.push(bfsnode(op, path));

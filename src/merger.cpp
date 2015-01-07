@@ -26,6 +26,7 @@
  */
 
 #include <iostream>
+#include <cmath> // modf()
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
@@ -51,9 +52,13 @@ bool okstream(std::ifstream &s) {
 
 void read_line(std::ifstream &f, std::string &p, unsigned int &c) {
     p = get_pdfpath_string(f);
-    f >> c;
+    double dc, dci;
+    f >> dc;
     if (count_one) {
         c = 1U;
+    } else {
+        std::modf(dc, &dci);
+        c = static_cast<unsigned int>(dci);
     }
     f.get();
 }
@@ -86,14 +91,14 @@ void merge(const char *fname1, const char *fname2) {
     std::string p1, p2;
     unsigned int c1, c2;
     bool do_read = true;
-    
+
     while (not do_read or (okstream(f1) and okstream(f2))) {
         if (do_read) {
             read_line(f1, p1, c1);
             read_line(f2, p2, c2);
         }
         do_read = true;
-        
+
         if (p1 < p2) {
             write_line(fd, p1, c1);
             while (okstream(f1)) {
@@ -122,7 +127,7 @@ void merge(const char *fname1, const char *fname2) {
             do_read = true;
         }
     }
-    
+
     copy_trailer(fd, f1);
     copy_trailer(fd, f2);
     close(fd);
@@ -133,7 +138,7 @@ int main(int argc, char *argv[]) {
         exit_error("Wrong count of arguments.\n"
                    "Usage: merger file1 file2 (1|n)");
     }
-    
+
     if (strncmp(argv[3], "1", 1) == 0) {
         count_one = true;
     } else if (strncmp(argv[3], "n", 1) == 0) {
@@ -141,8 +146,8 @@ int main(int argc, char *argv[]) {
     } else {
         exit_error("Third argument must be either '1' or 'n'.");
     }
-    
+
     merge(argv[1], argv[2]);
-    
+
     return EXIT_SUCCESS;
 }
