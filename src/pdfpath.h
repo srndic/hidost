@@ -20,7 +20,8 @@ typedef std::vector<std::string> pdfpath;
  * @param in the open input stream from which to parse from.
  * @param p the resulting pdfpath objects in a std::vector.
  *
- * @throws a lot of different const char[] messages if there are parsing errors.
+ * @throws a lot of different const char[] messages if there are
+ * parsing errors.
  */
 void parse_pdfpaths(std::istream &in, std::vector<pdfpath> &v);
 
@@ -32,12 +33,14 @@ void parse_pdfpaths(std::istream &in, std::vector<pdfpath> &v);
  * @param in the open input stream from which to parse from.
  * @param p the resulting pdfpath object.
  *
- * @throws a lot of different const char[] messages if there are parsing errors.
+ * @throws a lot of different const char[] messages if there are
+ * parsing errors.
  */
 void parse_pdfpath(std::istream &in, pdfpath &path);
 
 /*!
- * \brief Overloaded operator >>, parses a pdfpath object in the NPPF format.
+ * \brief Overloaded operator >>, parses a pdfpath object in the
+ * NPPF format.
  *
  * @param in the input stream.
  * @param p the parsed path.
@@ -45,7 +48,8 @@ void parse_pdfpath(std::istream &in, pdfpath &path);
 std::istream &operator>>(std::istream &in, pdfpath &path);
 
 /*!
- * \brief Overloaded operator <<, prints a pdfpath object in the NPPF format.
+ * \brief Overloaded operator <<, prints a pdfpath object in the
+ * NPPF format.
  *
  * @param out the output stream.
  * @param p the path to print.
@@ -65,5 +69,12 @@ std::string pdfpath_to_string(const pdfpath &path);
  * @param stream the stream.
  */
 std::string get_pdfpath_string(std::istream &stream);
+
+/*!
+ * \brief Compacts the given PDF path and returns it.
+ *
+ * @param path the PDF path.
+ */
+std::string compact_pdfpath(const pdfpath &path);
 
 #endif /*PDFPATH_H_*/

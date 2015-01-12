@@ -42,119 +42,37 @@
 
 #define PROG_NAME "pdf2vals: "
 
-namespace b = boost;
-
 void exit_error(const char *e) {
     std::cerr << PROG_NAME << e << std::endl;
     std::exit(EXIT_FAILURE);
 }
 
-typedef std::pair<b::regex, std::string> rp;
-std::vector<rp> res;
-
 // True if path compaction is to be done
 bool do_compact = false;
 
-void initRegex() {
-    // Resource dictionaries
-    res.push_back(
-            rp(b::regex(
-                    "\\0Resources\\0(ExtGState|ColorSpace|Pattern|Shading|XObject|Font|Properties|Para)\\0[^\\0]+"),
-               "\\0Resources\\0\\1\\0Name"));
-    // Page tree
-    res.push_back(
-            rp(b::regex(
-                    "^Pages\\0(Kids\\0|Parent\\0)*(Kids$|Kids\\0|Parent\\0|Parent$)"),
-               "Pages\\0"));
-    // Other Kids/Parent hierarchies (AcroForm?)
-    res.push_back(
-            rp(b::regex(
-                    "\\0(Kids\\0|Parent\\0)*(Kids$|Kids\\0|Parent\\0|Parent$)"),
-               "\\0"));
-    // Prev, Next, First and Last links (Outline tree)
-    res.push_back(rp(b::regex("(Prev\\0|Next\\0|First\\0|Last\\0)+"), ""));
-    // Name trees
-    res.push_back(
-            rp(b::regex(
-                    "^Names\\0(Dests|AP|JavaScript|Pages|Templates|IDS|URLS|EmbeddedFiles|AlternatePresentations|Renditions)\\0(Kids\\0|Parent\\0)*Names"),
-               "Names\\0\\1\\0Names"));
-    res.push_back(
-            rp(b::regex("^StructTreeRoot\\0IDTree\\0(Kids\\0)*Names"),
-               "StructTreeRoot\\0IDTree\\0Names"));
-    // Number trees (parent tree)
-    res.push_back(
-            rp(b::regex(
-                    "^(StructTreeRoot\\0ParentTree|PageLabels)\\0(Kids\\0|Parent\\0)+(Nums|Limits)"),
-               "\\1\\0\\3"));
-    res.push_back(
-            rp(b::regex("^StructTreeRoot\\0ParentTree\\0Nums\\0(K\\0|P\\0)+"),
-               "StructTreeRoot\\0ParentTree\\0Nums\\0"));
-    // Names StructTree entries
-    res.push_back(
-            rp(b::regex(
-                    "^(StructTreeRoot|Outlines\\0SE)\\0(RoleMap|ClassMap)\\0[^\\0]+"),
-               "\\1\\0\\2\\0Name"));
-    // StructTree
-    res.push_back(
-            rp(b::regex("^(StructTreeRoot|Outlines\\0SE)\\0(K\\0|P\\0)*"),
-               "\\1\\0"));
-    // Top-level dictionaries containing names
-    res.push_back(rp(b::regex("^(Extensions|Dests)\\0[^\\0]+"), "\\1\\0Name"));
-    // Char maps
-    res.push_back(
-            rp(b::regex("Font\\0([^\\0]+)\\0CharProcs\\0[^\\0]+"),
-               "Font\\0\\1\\0CharProcs\\0Name"));
-    // Extra AcroForm resources
-    res.push_back(
-            rp(b::regex(
-                    "^(AcroForm\\0(Fields\\0|C0\\0)?DR\\0)(ExtGState|ColorSpace|Pattern|Shading|XObject|Font|Properties)\\0[^\\0]+"),
-               "\\1\\3\\0Name"));
-    // Annots
-    res.push_back(
-            rp(b::regex("\\0AP\\0(D|N)\\0[^\\0]+"), "\\0AP\\0\\1\\0Name"));
-    // Threads
-    res.push_back(rp(b::regex("Threads\\0F\\0(V\\0|N\\0)*"), "Threads\\0F"));
-    // StructTree info
-    res.push_back(
-            rp(b::regex("^(StructTreeRoot|Outlines\\0SE)\\0Info\\0[^\\0]+"),
-               "\\1\\0Info\\0Name"));
-    // Colorant name
-    res.push_back(
-            rp(b::regex("ColorSpace\\0([^\\0]+)\\0Colorants\\0[^\\0]+"),
-               "ColorSpace\\0\\1\\0Colorants\\0Name"));
-    res.push_back(
-            rp(b::regex("ColorSpace\\0Colorants\\0[^\\0]+"),
-               "ColorSpace\\0Colorants\\0Name"));
-    // Collection schema
-    res.push_back(
-            rp(b::regex("Collection\\0Schema\\0[^\\0]+"),
-               "Collection\\0Schema\\0Name"));
-}
-
 std::map<std::string, std::vector<double>> pathvals;
 void insertValue(const pdfpath &path, Object &o) {
-    if (not (o.isBool() or o.isNum())) {
-        return;
-    }
     // Convert path object to string
-    std::string pathstr(pdfpath_to_string(path));
+    std::string pathstr;
     if (do_compact) {
-        for (const auto &re : res) {
-            pathstr = b::regex_replace(pathstr, re.first, re.second,
-                                       b::match_default | b::format_all);
-        }
+        pathstr = compact_pdfpath(path);
+    } else {
+        pathstr = pdfpath_to_string(path);
     }
     if (pathstr.size() < 2) {
         // Remove empty paths (consisting of 2 null-bytes)
         return;
     }
 
-    // Convert type
+    // Convert value type to double
     double v = 0.0;
     if (o.isBool()) {
         v = o.getBool() ? 1.0 : 0.0;
     } else if (o.isNum()) {
         v = o.getNum();
+    } else {
+        // Path presence by default
+        v = 1.0;
     }
 
     // Insert into the map
@@ -230,7 +148,10 @@ void bfs() {
                     delete op;
                 }
             }
-            // Empty array not handled
+            if (a->getLength() == 0) {
+                // Empty array
+                insertValue(path, *o);
+            }
         }
             break;
         case objDict: {
@@ -247,7 +168,10 @@ void bfs() {
                 unvisited.push(bfsnode(op, path));
                 path.pop_back();
             }
-            // Empty dict not handled
+            if (d->getLength() == 0) {
+                // Empty dict
+                insertValue(path, *o);
+            }
         }
             break;
         case objStream: {
@@ -264,7 +188,10 @@ void bfs() {
                 unvisited.push(bfsnode(op, path));
                 path.pop_back();
             }
-            // Empty stream not handled
+            if (d->getLength() == 0) {
+                // Empty stream
+                insertValue(path, *o);
+            }
         }
             break;
         case objRef: {
@@ -276,7 +203,7 @@ void bfs() {
                 xref->fetch(r.num, r.gen, op);
                 unvisited.push(bfsnode(op, path));
             }
-            // References not handled
+            insertValue(path, *o);
         }
             break;
         case objError:
@@ -323,10 +250,6 @@ int main(int argc, char *argv[]) {
     xref = pdfdoc->getXRef();
     if (!xref->isOk()) {
         exit_error("Error getting XRef.");
-    }
-
-    if (do_compact) {
-        initRegex();
     }
 
     bfs();
