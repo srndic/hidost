@@ -1,21 +1,21 @@
 /*
- * Copyright 2014 Nedim Srndic, University of Tuebingen
+ * Copyright 2012-2015 Nedim Srndic, University of Tuebingen
  *
- * This file is part of pdf2misc.
-
- * pdf2misc is free software: you can redistribute it and/or modify
+ * This file is part of Hidost.
+ *
+ * Hidost is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
- * pdf2misc is distributed in the hope that it will be useful,
+ * Hidost is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- * along with pdf2misc.  If not, see <http://www.gnu.org/licenses/>.
-
+ * along with Hidost.  If not, see <http://www.gnu.org/licenses/>.
+ *
  * NPPFFile.cpp
  *  Created on: Oct 4, 2012
  */
@@ -27,7 +27,7 @@ InNPPFFile::InNPPFFile(const char *fname) :
     static const char HEADER[] = "NPPF\0\0";
     static const unsigned int BUF_LEN = 6 + 1; // length of header including two null bytes
     char buffer[BUF_LEN];
-    
+
     // Extract file header
     if (in.good() and in.peek() != EOF) {
         // Read the header terminated by a newline
@@ -37,7 +37,7 @@ InNPPFFile::InNPPFFile(const char *fname) :
     } else {
         throw INNPPFFILE_CLASS_NAME": Bad input file.\n";
     }
-    
+
     // Verify file header
     for (unsigned int i = 0U; i < BUF_LEN; i++) {
         if (buffer[i] != HEADER[i]) {

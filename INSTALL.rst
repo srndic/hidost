@@ -33,8 +33,9 @@ the system CLASSPATH, e.g., by putting the following line into your
 Please make sure the Java compiler ``javac`` is installed as it is
 required for building the Java part of Hidost.
 
-Hidost also depends on libquickly, a C++ library for multiprocessing.
-You can get its source separately.
+Hidost also depends on
+`libquickly <https://github.com/srndic/libquickly>`_, a C++ library
+for multiprocessing. Please install it before installing Hidost.
 
 Building Hidost
 ====================
