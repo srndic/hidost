@@ -34,7 +34,6 @@ import re
 import shelve
 import subprocess
 import sys
-import types
 
 
 def append_libsvm(X, y, fd, comment=[]):
@@ -139,12 +138,9 @@ def get_swf_structure(f, verbose=False, do_compact=True):
                 elif value == 'false':
                     value = False
 
-            # Discard strings, Nones, tuples and longs
-            if (isinstance(value, str) or
-                    isinstance(value, types.NoneType) or
-                    isinstance(value, tuple) or
-                    isinstance(value, long)):
-                continue
+            # Encode non-numeric types as binary
+            if not isinstance(value, (float, bool, int)):
+                value = 1.0
 
             # Save value
             if pathstr in s:
