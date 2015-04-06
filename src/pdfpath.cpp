@@ -95,76 +95,95 @@ void init_regex() {
     // Resource dictionaries
     res.push_back(
             rp(b::regex(
-                    "\\0Resources\\0(ExtGState|ColorSpace|Pattern|Shading|XObject|Font|Properties|Para)\\0[^\\0]+"),
-               "\\0Resources\\0\\1\\0Name"));
+                   "\\0Resources\\0(ExtGState|ColorSpace|Pattern|Shading|XObject|Font|Properties|Para)\\0[^\\0]+"),
+                   "\\0Resources\\0\\1\\0Name"));
     // Page tree
     res.push_back(
             rp(b::regex(
-                    "^Pages\\0(Kids\\0|Parent\\0)*(Kids$|Kids\\0|Parent\\0|Parent$)"),
-               "Pages\\0"));
+                   "^Pages\\0(Kids\\0|Parent\\0)*(Kids$|Kids\\0|Parent\\0|Parent$)"),
+                   "Pages\\0"));
     // Other Kids/Parent hierarchies (AcroForm?)
     res.push_back(
             rp(b::regex(
-                    "\\0(Kids\\0|Parent\\0)*(Kids$|Kids\\0|Parent\\0|Parent$)"),
-               "\\0"));
+                   "\\0(Kids\\0|Parent\\0)*(Kids$|Kids\\0|Parent\\0|Parent$)"),
+                   "\\0"));
     // Prev, Next, First and Last links (Outline tree)
-    res.push_back(rp(b::regex("(Prev\\0|Next\\0|First\\0|Last\\0)+"), ""));
+    res.push_back(
+            rp(b::regex(
+                   "(Prev\\0|Next\\0|First\\0|Last\\0)+"),
+                   ""));
     // Name trees
     res.push_back(
             rp(b::regex(
-                    "^Names\\0(Dests|AP|JavaScript|Pages|Templates|IDS|URLS|EmbeddedFiles|AlternatePresentations|Renditions)\\0(Kids\\0|Parent\\0)*Names"),
-               "Names\\0\\1\\0Names"));
+                   "^Names\\0(Dests|AP|JavaScript|Pages|Templates|IDS|URLS|EmbeddedFiles|AlternatePresentations|Renditions)\\0(Kids\\0|Parent\\0)*Names"),
+                   "Names\\0\\1\\0Names"));
     res.push_back(
-            rp(b::regex("^StructTreeRoot\\0IDTree\\0(Kids\\0)*Names"),
-               "StructTreeRoot\\0IDTree\\0Names"));
+            rp(b::regex(
+                   "^StructTreeRoot\\0IDTree\\0(Kids\\0)*Names"),
+                   "StructTreeRoot\\0IDTree\\0Names"));
     // Number trees (parent tree)
     res.push_back(
             rp(b::regex(
-                    "^(StructTreeRoot\\0ParentTree|PageLabels)\\0(Kids\\0|Parent\\0)+(Nums|Limits)"),
-               "\\1\\0\\3"));
+                   "^(StructTreeRoot\\0ParentTree|PageLabels)\\0(Kids\\0|Parent\\0)+(Nums|Limits)"),
+                   "\\1\\0\\3"));
     res.push_back(
-            rp(b::regex("^StructTreeRoot\\0ParentTree\\0Nums\\0(K\\0|P\\0)+"),
-               "StructTreeRoot\\0ParentTree\\0Nums\\0"));
+            rp(b::regex(
+                   "^StructTreeRoot\\0ParentTree\\0Nums\\0(K\\0|P\\0)+"),
+                   "StructTreeRoot\\0ParentTree\\0Nums\\0"));
     // Names StructTree entries
     res.push_back(
             rp(b::regex(
-                    "^(StructTreeRoot|Outlines\\0SE)\\0(RoleMap|ClassMap)\\0[^\\0]+"),
-               "\\1\\0\\2\\0Name"));
+                   "^(StructTreeRoot|Outlines\\0SE)\\0(RoleMap|ClassMap)\\0[^\\0]+"),
+                   "\\1\\0\\2\\0Name"));
     // StructTree
     res.push_back(
-            rp(b::regex("^(StructTreeRoot|Outlines\\0SE)\\0(K\\0|P\\0)*"),
-               "\\1\\0"));
+            rp(b::regex(
+                   "^(StructTreeRoot|Outlines\\0SE)\\0(K\\0|P\\0)*"),
+                   "\\1\\0"));
     // Top-level dictionaries containing names
-    res.push_back(rp(b::regex("^(Extensions|Dests)\\0[^\\0]+"), "\\1\\0Name"));
+    res.push_back(
+            rp(b::regex(
+                   "^(Extensions|Dests)\\0[^\\0]+"),
+                   "\\1\\0Name"));
     // Char maps
     res.push_back(
-            rp(b::regex("Font\\0([^\\0]+)\\0CharProcs\\0[^\\0]+"),
-               "Font\\0\\1\\0CharProcs\\0Name"));
+            rp(b::regex(
+                   "Font\\0([^\\0]+)\\0CharProcs\\0[^\\0]+"),
+                   "Font\\0\\1\\0CharProcs\\0Name"));
     // Extra AcroForm resources
     res.push_back(
             rp(b::regex(
-                    "^(AcroForm\\0(Fields\\0|C0\\0)?DR\\0)(ExtGState|ColorSpace|Pattern|Shading|XObject|Font|Properties)\\0[^\\0]+"),
-               "\\1\\3\\0Name"));
+                   "^(AcroForm\\0(Fields\\0|C0\\0)?DR\\0)(ExtGState|ColorSpace|Pattern|Shading|XObject|Font|Properties)\\0[^\\0]+"),
+                   "\\1\\3\\0Name"));
     // Annots
     res.push_back(
-            rp(b::regex("\\0AP\\0(D|N)\\0[^\\0]+"), "\\0AP\\0\\1\\0Name"));
+            rp(b::regex(
+                   "\\0AP\\0(D|N)\\0[^\\0]+"),
+                   "\\0AP\\0\\1\\0Name"));
     // Threads
-    res.push_back(rp(b::regex("Threads\\0F\\0(V\\0|N\\0)*"), "Threads\\0F"));
+    res.push_back(
+            rp(b::regex(
+                   "Threads\\0F\\0(V\\0|N\\0)*"),
+                   "Threads\\0F"));
     // StructTree info
     res.push_back(
-            rp(b::regex("^(StructTreeRoot|Outlines\\0SE)\\0Info\\0[^\\0]+"),
-               "\\1\\0Info\\0Name"));
+            rp(b::regex(
+                   "^(StructTreeRoot|Outlines\\0SE)\\0Info\\0[^\\0]+"),
+                   "\\1\\0Info\\0Name"));
     // Colorant name
     res.push_back(
-            rp(b::regex("ColorSpace\\0([^\\0]+)\\0Colorants\\0[^\\0]+"),
-               "ColorSpace\\0\\1\\0Colorants\\0Name"));
+            rp(b::regex(
+                   "ColorSpace\\0([^\\0]+)\\0Colorants\\0[^\\0]+"),
+                   "ColorSpace\\0\\1\\0Colorants\\0Name"));
     res.push_back(
-            rp(b::regex("ColorSpace\\0Colorants\\0[^\\0]+"),
-               "ColorSpace\\0Colorants\\0Name"));
+            rp(b::regex(
+                   "ColorSpace\\0Colorants\\0[^\\0]+"),
+                   "ColorSpace\\0Colorants\\0Name"));
     // Collection schema
     res.push_back(
-            rp(b::regex("Collection\\0Schema\\0[^\\0]+"),
-               "Collection\\0Schema\\0Name"));
+            rp(b::regex(
+                   "Collection\\0Schema\\0[^\\0]+"),
+                   "Collection\\0Schema\\0Name"));
 }
 
 std::string compact_pdfpath(const pdfpath &path) {
