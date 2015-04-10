@@ -58,9 +58,9 @@ Follow these steps to obtain the data file:
      in cache directories, for benign and malicious files separately::
 
        mkdir cache-ben cache-mal
-       ./src/cacher -i bpdfs.txt -e ./src/pdf2paths -c cache-ben/ \
+       ./src/cacher -i bpdfs.txt --compact --values -c cache-ben/ \
        -t10 -m256
-       ./src/cacher -i mpdfs.txt -e ./src/pdf2paths -c cache-mal/ \
+       ./src/cacher -i mpdfs.txt --compact --values -c cache-mal/ \
        -t10 -m256
 
      We will need the absolute paths of all non-empty cached PDF
@@ -85,7 +85,7 @@ Follow these steps to obtain the data file:
      store the result in the output file ``data.libsvm``::
 
        ./src/feat-extract -b cached-bpdfs.txt -m cached-mpdfs.txt \
-       -f features.nppf -o data.libsvm
+       -f features.nppf --values -o data.libsvm
 
 The output file ``data.libsvm`` can now be used for learning and
 classification.
