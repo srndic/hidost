@@ -90,7 +90,7 @@ po::variables_map parse_arguments(int argc, char *argv[]) {
     return vm;
 }
 
-int main(int argc, char *argv[]) {
+int run(int argc, char *argv[]) {
     po::variables_map vm = parse_arguments(argc, argv);
     const std::string INPUT_FILE = vm["input-file"].as<std::string>();
     const std::string OUTPUT_FILE = vm["output-file"].as<std::string>();
@@ -98,4 +98,19 @@ int main(int argc, char *argv[]) {
 
     feat_select(INPUT_FILE.c_str(), OUTPUT_FILE.c_str(), MIN_COUNT);
     return EXIT_SUCCESS;
+}
+
+int main(int argc, char *argv[]) {
+	try {
+		return run(argc, argv);
+	} catch (std::exception &e) {
+		std::cerr << "Exception caught: " << e.what() << std::endl;
+		return EXIT_FAILURE;
+	} catch (const char *e) {
+		std::cerr << "Exception caught: " << e << std::endl;
+		return EXIT_FAILURE;
+	} catch (...) {
+		std::cerr << "Unexpected exception caught." << std::endl;
+		return EXIT_FAILURE;
+	}
 }

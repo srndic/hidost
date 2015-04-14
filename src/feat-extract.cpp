@@ -218,7 +218,7 @@ void get_input_files(filevector &input_files, const char *in_name,
     ifile.close();
 }
 
-int main(int argc, char *argv[]) {
+int run(int argc, char *argv[]) {
     // Parse arguments
     po::variables_map vm = parse_arguments(argc, argv);
     const std::string INPUT_MAL = vm["input-mal"].as<std::string>();
@@ -264,4 +264,19 @@ int main(int argc, char *argv[]) {
     }
 
     return EXIT_SUCCESS;
+}
+
+int main(int argc, char *argv[]) {
+	try {
+		return run(argc, argv);
+	} catch (std::exception &e) {
+		std::cerr << "Exception caught: " << e.what() << std::endl;
+		return EXIT_FAILURE;
+	} catch (const char *e) {
+		std::cerr << "Exception caught: " << e << std::endl;
+		return EXIT_FAILURE;
+	} catch (...) {
+		std::cerr << "Unexpected exception caught." << std::endl;
+		return EXIT_FAILURE;
+	}
 }
