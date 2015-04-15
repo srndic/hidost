@@ -83,7 +83,7 @@ std::string get_pdfpath_string(std::istream &stream) {
             return ss.str();
         }
     }
-    throw;
+	throw "pdfpath: Empty input for pdfpath string.";
 }
 
 /*
