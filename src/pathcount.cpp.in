@@ -175,6 +175,11 @@ int run(int argc, char *argv[]) {
         pool.setCpuLimit(CPU_LIMIT);
         pool.run();
         
+        if (true or DataActionImpl::getNewFiles().size() != argvs.size()) {
+	        throw "Some child processes have failed, aborting.\n"
+	        	  "Undeleted temporary files /tmp/mergerXXXXXX left behind";
+        }
+        
         // Delete input files, except the original path files
         if (not first_run) {
             for (const auto &file : input_files) {
@@ -193,6 +198,7 @@ int run(int argc, char *argv[]) {
     if (first_run) {
         return EXIT_SUCCESS;
     }
+    
     std::string &resultf(input_files[0]);
     // Move the result file from /tmp to its final location
     if (rename(resultf.c_str(), OUTPUT_FILE.c_str())) {
