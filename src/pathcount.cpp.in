@@ -175,7 +175,7 @@ int run(int argc, char *argv[]) {
         pool.setCpuLimit(CPU_LIMIT);
         pool.run();
         
-        if (true or DataActionImpl::getNewFiles().size() != argvs.size()) {
+        if (DataActionImpl::getNewFiles().size() != argvs.size()) {
 	        throw "Some child processes have failed, aborting.\n"
 	        	  "Undeleted temporary files /tmp/mergerXXXXXX left behind";
         }
