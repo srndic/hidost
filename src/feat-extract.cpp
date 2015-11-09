@@ -109,7 +109,6 @@ void DataActionImpl::doFull(std::stringstream &databuf) {
     std::set<std::string>::const_iterator fi = DataActionImpl::features.begin();
     std::string path;
     std::stringstream ss;
-    bool no_features = true;
     // Write file class
     ss << DataActionImpl::all_files[getId()].second << ' ';
     // Parse paths
@@ -140,7 +139,6 @@ void DataActionImpl::doFull(std::stringstream &databuf) {
             } else {
                 ss << "1 ";
             }
-            no_features = false;
             fi++;
             if (fi == features.end()) {
                 goto end_of_features;
@@ -152,8 +150,7 @@ void DataActionImpl::doFull(std::stringstream &databuf) {
     // Write file name as comment
     ss << '#' << DataActionImpl::all_files[getId()].first;
     // Do not write empty lines
-    std::string line(no_features ? std::string() : ss.str());
-    while (not this->process(line)) {
+    while (not this->process(ss.str())) {
     }
 }
 
