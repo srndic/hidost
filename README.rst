@@ -9,14 +9,6 @@ Toolset for extracting document structures from PDF and SWF files
 Copyright 2014 Nedim Srndic, University of Tuebingen
 nedim.srndic@uni-tuebingen.de
 
-Source code for the extraction of features from PDF and SWF files
-as published in [1].
-
-.. [1] Nedim Srndic, Pavel Laskov. **Detection of Malicious PDF
-   Files Based on Hierarchical Document Structure**. In *Proceedings
-   of the 20th Annual Network & Distributed System Security Symposium*,
-   2013.
-
 
 Installation and Setup
 ===============================
