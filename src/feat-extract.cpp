@@ -147,6 +147,15 @@ void DataActionImpl::doFull(std::stringstream &databuf) {
     }
     end_of_features:
 
+    // We have to output the feature description for a sample
+    // even if not any feature occurs.
+    if (DataActionImpl::all_files[getId()].first != "") {
+        if (no_features == true) {
+            ss << "1:0 ";
+            no_features = false;
+        }
+    }
+
     // Write file name as comment
     ss << '#' << DataActionImpl::all_files[getId()].first;
     // Do not write empty lines
