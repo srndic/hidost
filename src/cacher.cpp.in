@@ -89,7 +89,7 @@ fs::path DataActionImpl::cache_dir;
 void DataActionImpl::doFull(std::stringstream &databuf) {
     fs::path of_path(DataActionImpl::cache_dir);
     of_path /= files[getId()];
-
+     
     // Open the cache file
     std::ofstream of(of_path.c_str(), std::ios::binary | std::ios::trunc);
     if (!of) {
@@ -204,7 +204,9 @@ int run(int argc, char *argv[]) {
             fs::path ff(line);
             if (not fs::exists(ff)) {
                 std::cerr << "Skipping nonexistent file " << line << std::endl;
-            } else {
+            } else if (fs::is_directory(ff)) {
+		std::cerr << "Skipping directory " << line << std::endl;
+	    }else {
                 DataActionImpl::addFile(fs::canonical(line).string());
             }
         }
